@@ -1,0 +1,3 @@
+include ':infinitegridview'
+include ':app'
+rootProject.name = "InfiniteGridView"

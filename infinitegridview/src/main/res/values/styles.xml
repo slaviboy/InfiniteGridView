@@ -1,0 +1,18 @@
+<resources>
+
+    <declare-styleable name="InfiniteGridView">
+        <attr name="distanceBetweenVerticalLines" format="dimension" />
+        <attr name="verticalLinesStrokeWidthThick" format="float" />
+        <attr name="verticalLinesStrokeWidthNormal" format="float" />
+        <attr name="verticalLinesThickLineIndex" format="integer" />
+        <attr name="verticalNormalLinesColor" format="color" />
+        <attr name="verticalThickLinesColor" format="color" />
+        <attr name="distanceBetweenHorizontalLines" format="dimension" />
+        <attr name="horizontalLinesStrokeWidthThick" format="float" />
+        <attr name="horizontalLinesStrokeWidthNormal" format="float" />
+        <attr name="horizontalLinesThickLineIndex" format="integer" />
+        <attr name="horizontalNormalLinesColor" format="color" />
+        <attr name="horizontalThickLinesColor" format="color" />
+    </declare-styleable>
+
+</resources>

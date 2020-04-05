@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <com.slaviboy.infinitegridview.InfiniteGridView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#46ADE8"
+        app:horizontalNormalLinesColor="#ffffff"
+        app:horizontalThickLinesColor="#ffffff"
+        app:verticalNormalLinesColor="#ffffff"
+        app:verticalThickLinesColor="#ffffff" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="2dp"
+        android:textSize="12sp"
+        android:textColor="#ffffff"
+        android:textStyle="bold"
+        android:shadowColor="#DF000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:text="Made By: Slaviboy" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
