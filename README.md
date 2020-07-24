@@ -6,6 +6,10 @@ Simple library for creating infinite grid written in Kotlin
 ## About
 The library contains a InfiniteGridView that is used to create a infinite grid that can have transformations applied to it, such as rotation, translation and scaling using the finger gestures made by the user. It is generating, only the lines that are visible by the user and displayed in the view. Lines are generated in real time using simple math algorithms that can be found on the official [Wiki](https://github.com/slaviboy/InfiniteGridView/wiki) page.
 
+[![Platform](https://img.shields.io/badge/platform-android-green.svg)](http://developer.android.com/index.html)
+[![API](https://img.shields.io/badge/API-14%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
+[![Download](https://api.bintray.com/packages/lopspower/maven/com.mikhaellopez:circularprogressbar/images/download.svg?version=0.1.0)](https://github.com/slaviboy/InfiniteGridView/releases)
+
 ## Add to your project
 
 Add the jitpack maven repository
