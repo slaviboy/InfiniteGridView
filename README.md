@@ -8,7 +8,7 @@ The library contains a InfiniteGridView that is used to create a infinite grid t
 
 [![Platform](https://img.shields.io/badge/platform-android-green.svg)](http://developer.android.com/index.html)
 [![API](https://img.shields.io/badge/API-14%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
-[![Download](https://api.bintray.com/packages/lopspower/maven/com.mikhaellopez:circularprogressbar/images/download.svg?version=0.1.0)](https://github.com/slaviboy/InfiniteGridView/releases)
+[![Download](https://img.shields.io/badge/version-0.1.0-blue)](https://github.com/slaviboy/InfiniteGridView/releases)
 
 ## Add to your project
 
