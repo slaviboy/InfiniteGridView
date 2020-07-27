@@ -1,47 +1,207 @@
+/*
+ * Copyright (C) 2020 Stanislav Georgiev
+ * https://github.com/slaviboy
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.slaviboy.infinitegridview
 
 import android.graphics.*
-
-// Copyright (C) 2020 Stanislav Georgiev
-//  https://github.com/slaviboy
-//
-//	This program is free software: you can redistribute it and/or modify
-//	it under the terms of the GNU Affero General Public License as
-//	published by the Free Software Foundation, either version 3 of the
-//	License, or (at your option) any later version.
-//
-//	This program is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU Affero General Public License for more details.
-//
-//	You should have received a copy of the GNU Affero General Public License
-//	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Class for generating infinite grid by generating only the lines that are visible
  * by the user and are displayed on the canvas. The class have method for updating
  * the parallel lines and drawing them on given canvas.
+ * @param width width of the canvas(view) where the drawing is done
+ * @param height height of the canvas(view) where the drawing is done
+ * @param distanceBetweenVerticalLines distance between each two vertical lines
+ * @param distanceBetweenHorizontalLines distance between each two horizontal lines
+ * @param verticalLinesStrokeWidthThick stroke width for the thick vertical lines
+ * @param verticalLinesStrokeWidthNormal stroke width for the normal vertical lines
+ * @param horizontalLinesStrokeWidthThick stroke width for the thick horizontal lines
+ * @param horizontalLinesStrokeWidthNormal stroke width for the normal horizontal lines
+ * @param verticalLinesThickLineIndex through how many normal lines a thick line will be drawn for vertical lines
+ * @param horizontalLinesThickLineIndex through how many normal lines a thick line will be drawn for horizontal lines
+ * @param verticalNormalLinesColor color for normal vertical lines
+ * @param verticalThickLinesColor color for thick vertical lines
+ * @param horizontalNormalLinesColor  color for normal horizontal lines
+ * @param horizontalThickLinesColor color for thick horizontal lines
+ * @param valuesMeasurementType the type of how to pick the measurements for the line values
+ * @param matrixGestureDetector gesture detector with matrix holding the transformations - rotation, scale and move
  */
 class InfiniteGrid(
-    var canvasWidth: Float,
-    var canvasHeight: Float,
-    var originalBasePoints: FloatArray,
-    var canvasBoundLinesCoordinates: FloatArray
+    private var width: Float = 0f,
+    private var height: Float = 0f,
+    distanceBetweenVerticalLines: Float = DISTANCE_BETWEEN_LINES,
+    distanceBetweenHorizontalLines: Float = DISTANCE_BETWEEN_LINES,
+    verticalLinesStrokeWidthThick: Float = STROKE_WIDTH_THICK,
+    verticalLinesStrokeWidthNormal: Float = STROKE_WIDTH_NORMAL,
+    horizontalLinesStrokeWidthThick: Float = STROKE_WIDTH_THICK,
+    horizontalLinesStrokeWidthNormal: Float = STROKE_WIDTH_NORMAL,
+    var verticalLinesThickLineIndex: Int = THICK_LINE_INDEX,
+    var horizontalLinesThickLineIndex: Int = THICK_LINE_INDEX,
+    var verticalNormalLinesColor: Int = LINE_COLOR,
+    var verticalThickLinesColor: Int = LINE_COLOR,
+    var horizontalNormalLinesColor: Int = LINE_COLOR,
+    var horizontalThickLinesColor: Int = LINE_COLOR,
+    var valuesMeasurementType: Int = VALUES_AS_WIDTH_PERCENTAGE,
+    var matrixGestureDetector: MatrixGestureDetector = MatrixGestureDetector()
 ) {
 
+    var distanceBetweenVerticalLines: Float = distanceBetweenVerticalLines
+        set(value) {
+            field = value
+            distanceBetweenVerticalLinesRaw = getRawValues(value)
+        }
+
+    var distanceBetweenHorizontalLines: Float = distanceBetweenHorizontalLines
+        set(value) {
+            field = value
+            distanceBetweenHorizontalLinesRaw = getRawValues(value)
+        }
+
+    var verticalLinesStrokeWidthThick: Float = verticalLinesStrokeWidthThick
+        set(value) {
+            field = value
+            verticalLinesStrokeWidthThickRaw = getRawValues(value)
+        }
+
+    var verticalLinesStrokeWidthNormal: Float = verticalLinesStrokeWidthNormal
+        set(value) {
+            field = value
+            verticalLinesStrokeWidthNormalRaw = getRawValues(value)
+        }
+
+    var horizontalLinesStrokeWidthThick: Float = horizontalLinesStrokeWidthThick
+        set(value) {
+            field = value
+            horizontalLinesStrokeWidthThickRaw = getRawValues(value)
+        }
+
+    var horizontalLinesStrokeWidthNormal: Float = horizontalLinesStrokeWidthNormal
+        set(value) {
+            field = value
+            horizontalLinesStrokeWidthNormalRaw = getRawValues(value)
+        }
+
+    var distanceBetweenVerticalLinesRaw: Float     // raw calculated value of the distance between each two vertical lines
+    var distanceBetweenHorizontalLinesRaw: Float   // raw calculated value of the distance between each two horizontal lines
+    var verticalLinesStrokeWidthThickRaw: Float    // raw calculated value of the stroke width for the thick vertical lines
+    var verticalLinesStrokeWidthNormalRaw: Float   // raw calculated value of the stroke width for the normal vertical lines
+    var horizontalLinesStrokeWidthThickRaw: Float  // raw calculated value of the stroke width for the thick horizontal lines
+    var horizontalLinesStrokeWidthNormalRaw: Float // raw calculated value of the stroke width for the normal horizontal lines
     val cornerOnNegativeSide: ArrayList<Float>     // canvas corners on the negative side of the base line (used for both vertical and horizontal base lines)
     val cornerOnPositiveSide: ArrayList<Float>     // canvas corners on the positive side of the base line (used for both vertical and horizontal base lines)
     var verticalParallelLines: ArrayList<LineF>    // array list with the vertical parallel lines
     var horizontalParallelLines: ArrayList<LineF>  // array list with the horizontal parallel lines
     var transformedBasePoints: FloatArray          // array with the transformed base points, by the transform matrix
+    var originalBasePoints: FloatArray             // original points when no transformations are made, those are points C,A,O,D,B
+    var canvasBoundLinesCoordinates: FloatArray    // line coordinates of the bound box, formed by the original base points
 
     init {
+
+        distanceBetweenVerticalLinesRaw = 0f
+        distanceBetweenHorizontalLinesRaw = 0f
+        verticalLinesStrokeWidthThickRaw = 0f
+        verticalLinesStrokeWidthNormalRaw = 0f
+        horizontalLinesStrokeWidthThickRaw = 0f
+        horizontalLinesStrokeWidthNormalRaw = 0f
         cornerOnNegativeSide = ArrayList()
         cornerOnPositiveSide = ArrayList()
         verticalParallelLines = ArrayList()
         horizontalParallelLines = ArrayList()
         transformedBasePoints = FloatArray(10)
+        originalBasePoints = floatArrayOf()
+        canvasBoundLinesCoordinates = floatArrayOf()
+
+        init()
+    }
+
+    /**
+     * Set the size for the view, that is used to calculate the line coordinates for the
+     * canvas bound, original base point and the raw values for the line properties.
+     * @param width width of the view where the scene is drawn
+     * @param width width of the view where the scene is drawn
+     */
+    fun setViewSize(width: Float, height: Float) {
+        this.width = width
+        this.height = height
+        init()
+    }
+
+    /**
+     * Init the the line coordinates for the canvas bound, original base point and the
+     * raw values for the line properties.
+     */
+    fun init() {
+
+        // lines coordinates for the canvas bound
+        canvasBoundLinesCoordinates = floatArrayOf(
+            0f, 0f, width, 0f,            // top side    -QR
+            0f, height, width, height,    // bottom side -MN
+            0f, 0f, 0f, height,           // left side   -QM
+            width, 0f, width, height      // right side  -RN
+        )
+
+        // the original base points
+        originalBasePoints = floatArrayOf(
+            width / 2f, 0f,           // C
+            0f, height / 2f,          // A
+            width / 2f, height / 2f,  // O
+            width / 2f, height,       // D
+            width, height / 2f        // B
+        )
+
+        updateRawValues()
+    }
+
+    /**
+     * Update the raw values for the line properties, that are dependent on the size
+     * of the view. The raw value is the actual size of a property that is set as
+     * percentage of the canvas width or height.
+     */
+    fun updateRawValues() {
+
+        // get the raw values, that are are set as percentage of width or height, or given as pixel values
+        distanceBetweenVerticalLinesRaw = getRawValues(distanceBetweenVerticalLines)
+        distanceBetweenHorizontalLinesRaw = getRawValues(distanceBetweenHorizontalLines)
+        verticalLinesStrokeWidthThickRaw = getRawValues(verticalLinesStrokeWidthThick)
+        verticalLinesStrokeWidthNormalRaw = getRawValues(verticalLinesStrokeWidthNormal)
+        horizontalLinesStrokeWidthThickRaw = getRawValues(horizontalLinesStrokeWidthThick)
+        horizontalLinesStrokeWidthNormalRaw = getRawValues(horizontalLinesStrokeWidthNormal)
+    }
+
+    /**
+     * Get the raw values that can be set as percentage of width and height, or given as
+     * pixel values. If none is specified, the default values are used.
+     * @param initValue initial value that can represent percentage or pure pixel values
+     */
+    fun getRawValues(initValue: Float): Float {
+
+        return when (valuesMeasurementType) {
+            VALUES_AS_WIDTH_PERCENTAGE -> {
+                width * initValue
+            }
+            VALUES_AS_HEIGHT_PERCENTAGE -> {
+                height * initValue
+            }
+            VALUES_AS_PIXELS -> {
+                initValue
+            }
+            else -> {
+                0f
+            }
+        }
     }
 
     /**
@@ -127,8 +287,8 @@ class InfiniteGrid(
         val totalNegativeSideLines = (maxNegativeSideDistance / transformedDistance).toInt()
 
         // check it T and S are outside the canvas bound
-        val tIsOutside = !(Tx >= 0f || Tx < canvasWidth)
-        val sIsOutside = !(Sx >= 0f || Sx < canvasWidth)
+        val tIsOutside = !(Tx >= 0f || Tx < width)
+        val sIsOutside = !(Sx >= 0f || Sx < width)
 
         // get the minimum distance, between the four corners and the base line, that is outside the visible canvas
         val offsetDistance = if (tIsOutside && sIsOutside) {
@@ -272,8 +432,8 @@ class InfiniteGrid(
         val totalNegativeSideLines = (maxNegativeSideDistance / transformedDistance).toInt()
 
         // check it T and S are outside the canvas bound
-        val tIsOutside = !(Ty >= 0f || Ty < canvasHeight)
-        val sIsOutside = !(Sy >= 0f || Sy < canvasHeight)
+        val tIsOutside = !(Ty >= 0f || Ty < height)
+        val sIsOutside = !(Sy >= 0f || Sy < height)
 
         // get the minimum distance, between the four corners and the base line, that is outside the visible canvas
         val offsetDistance = if (tIsOutside && sIsOutside) {
@@ -343,13 +503,7 @@ class InfiniteGrid(
      * @param x x coordinate for corner test point
      * @param y y coordinate for corner test point
      */
-    fun fillVerticalCornerSides(
-        x1: Float,
-        x2: Float,
-        isOnNegativeSideBase: Boolean,
-        x: Float,
-        y: Float
-    ) {
+    fun fillVerticalCornerSides(x1: Float, x2: Float, isOnNegativeSideBase: Boolean, x: Float, y: Float) {
 
         // get the signs, by checking the X coordinates (+ or -)
         val smallerThanZeroBase = x1 - x2 < 0
@@ -384,13 +538,7 @@ class InfiniteGrid(
      * @param x x coordinate for corner test point
      * @param y y coordinate for corner test point
      */
-    fun fillHorizontalCornerSides(
-        y1: Float,
-        y2: Float,
-        isOnNegativeSideBase: Boolean,
-        x: Float,
-        y: Float
-    ) {
+    fun fillHorizontalCornerSides(y1: Float, y2: Float, isOnNegativeSideBase: Boolean, x: Float, y: Float) {
 
         // get the signs, by checking the Y coordinates (+ or -)
         val smallerThanZeroBase = y1 - y2 < 0
@@ -466,16 +614,7 @@ class InfiniteGrid(
      * @param x4 line2 second point x coordinate
      * @param y4 line2 second point y coordinate
      */
-    private fun checkLineIntersection(
-        x1: Float,
-        y1: Float,
-        x2: Float,
-        y2: Float,
-        x3: Float,
-        y3: Float,
-        x4: Float,
-        y4: Float
-    ): LineIntersection {
+    private fun checkLineIntersection(x1: Float, y1: Float, x2: Float, y2: Float, x3: Float, y3: Float, x4: Float, y4: Float): LineIntersection {
 
         // if the lines intersect, the result contains the x and y of the intersection (treating the lines as infinite) and booleans for whether line segment 1 or line segment 2 contain the point
         var denominator = 0f
@@ -527,14 +666,7 @@ class InfiniteGrid(
      * @param dist distance between the existing line and the searched line
      * @param onNegativeSide if line should be on the negative or positive side
      */
-    fun getParallelLine(
-        x1: Float,
-        y1: Float,
-        x2: Float,
-        y2: Float,
-        dist: Float,
-        onNegativeSide: Boolean
-    ): LineF {
+    fun getParallelLine(x1: Float, y1: Float, x2: Float, y2: Float, dist: Float, onNegativeSide: Boolean): LineF {
         val dx = x2 - x1
         val dy = y2 - y1
 
@@ -562,16 +694,16 @@ class InfiniteGrid(
     }
 
     /**
-     * Distance between two points.
+     * Calculate the distance between two points.
      * @param x1 first point x coordinate
      * @param y1 first point y coordinate
      * @param x2 second point x coordinate
      * @param y2 second point y coordinate
      */
     fun distanceBetweenTwoPoints(x1: Float, y1: Float, x2: Float, y2: Float): Float {
-        val dx = (x1 - x2).toDouble()
+        val dx = (x1 - x2)
         val dy = (y1 - y2)
-        return Math.sqrt(dx * dx + dy * dy).toFloat()
+        return Math.sqrt(dx.toDouble() * dx + dy * dy).toFloat()
     }
 
     /**
@@ -584,14 +716,7 @@ class InfiniteGrid(
      * @param x2 line second point x coordinate
      * @param y2 line second point y coordinate
      */
-    fun distanceBetweenPointAndLine(
-        x: Float,
-        y: Float,
-        x1: Float,
-        y1: Float,
-        x2: Float,
-        y2: Float
-    ): Float {
+    fun distanceBetweenPointAndLine(x: Float, y: Float, x1: Float, y1: Float, x2: Float, y2: Float): Float {
 
         // position of point rel one end of line
         val A = x - x1
@@ -644,28 +769,16 @@ class InfiniteGrid(
     //endregion
 
     /**
-     * Update the arrays with vertical and horizontal parallel lines
-     *
-     * @param matrix matrix with transformations
-     * @param distanceBetweenHorizontalLines distance between each two horizontal lines
-     * @param distanceBetweenVerticalLines distance between each two vertical lines
-     * @param verticalLinesThickLineIndex how many normal vertical lines to skip before setting thick line
-     * @param horizontalLinesThickLineIndex how many normal horizontal lines to skip before setting thick line
+     * Update the arrays holding the vertical and horizontal parallel lines.
      */
-    fun updateParallelLines(
-        matrix: Matrix,
-        distanceBetweenHorizontalLines: Float,
-        distanceBetweenVerticalLines: Float,
-        verticalLinesThickLineIndex: Int,
-        horizontalLinesThickLineIndex: Int
-    ) {
+    fun updateParallelLines() {
 
         // transformed the base points
-        matrix.mapPoints(transformedBasePoints, originalBasePoints)
+        matrixGestureDetector.matrix.mapPoints(transformedBasePoints, originalBasePoints)
 
-        val scale = matrix.scale()
-        val newDistanceBetweenHorizontalLines = distanceBetweenHorizontalLines * scale
-        val newDistanceBetweenVerticalLines = distanceBetweenVerticalLines * scale
+        val scale = matrixGestureDetector.matrix.scale()
+        val newDistanceBetweenHorizontalLines = distanceBetweenHorizontalLinesRaw * scale
+        val newDistanceBetweenVerticalLines = distanceBetweenVerticalLinesRaw * scale
 
         // Q, R, M and N
         val Qx = canvasBoundLinesCoordinates[0]
@@ -750,29 +863,18 @@ class InfiniteGrid(
     }
 
     /**
-     *
+     * Draw all parallel lines on given canvas.
      */
-    fun drawParallelLines(
-        canvas: Canvas,
-        paint: Paint,
-        horizontalNormalLinesColor: Int,
-        horizontalThickLinesColor: Int,
-        verticalNormalLinesColor: Int,
-        verticalThickLinesColor: Int,
-        verticalLinesStrokeWidthThick: Float,
-        verticalLinesStrokeWidthNormal: Float,
-        horizontalLinesStrokeWidthThick: Float,
-        horizontalLinesStrokeWidthNormal: Float
-    ) {
+    fun drawParallelLines(canvas: Canvas, paint: Paint) {
 
         // draw the vertical parallel lines
         for (i in verticalParallelLines.indices) {
             val line = verticalParallelLines[i]
             if (line.isThick) {
-                paint.strokeWidth = verticalLinesStrokeWidthThick
+                paint.strokeWidth = verticalLinesStrokeWidthThickRaw
                 paint.color = verticalThickLinesColor
             } else {
-                paint.strokeWidth = verticalLinesStrokeWidthNormal
+                paint.strokeWidth = verticalLinesStrokeWidthNormalRaw
                 paint.color = verticalNormalLinesColor
             }
             canvas.drawLine(line.x1, line.y1, line.x2, line.y2, paint)
@@ -782,14 +884,29 @@ class InfiniteGrid(
         for (i in horizontalParallelLines.indices) {
             val line = horizontalParallelLines[i]
             if (line.isThick) {
-                paint.strokeWidth = horizontalLinesStrokeWidthThick
+                paint.strokeWidth = horizontalLinesStrokeWidthThickRaw
                 paint.color = horizontalThickLinesColor
             } else {
-                paint.strokeWidth = horizontalLinesStrokeWidthNormal
+                paint.strokeWidth = horizontalLinesStrokeWidthNormalRaw
                 paint.color = horizontalNormalLinesColor
             }
             canvas.drawLine(line.x1, line.y1, line.x2, line.y2, paint)
         }
+    }
+
+    companion object {
+
+        // default line properties
+        const val DISTANCE_BETWEEN_LINES: Float = 0.04f
+        const val STROKE_WIDTH_THICK: Float = 0.006f
+        const val STROKE_WIDTH_NORMAL: Float = 0.002f
+        const val THICK_LINE_INDEX: Int = 5
+        const val LINE_COLOR: Int = Color.BLACK
+
+        // supported measurement types for the values
+        const val VALUES_AS_WIDTH_PERCENTAGE = 0
+        const val VALUES_AS_HEIGHT_PERCENTAGE = 1
+        const val VALUES_AS_PIXELS = 2
     }
 }
 
@@ -800,13 +917,7 @@ class InfiniteGrid(
  * @param x2 second points x coordinate
  * @param y2 second points y coordinate
  */
-class LineF(
-    var x1: Float = 0f,
-    var y1: Float = 0f,
-    var x2: Float = 0f,
-    var y2: Float = 0f,
-    var isThick: Boolean = false
-) {
+class LineF(var x1: Float = 0f, var y1: Float = 0f, var x2: Float = 0f, var y2: Float = 0f, var isThick: Boolean = false) {
     override fun toString(): String {
         return "$x1 $y1 $x2 $y2"
     }
@@ -819,9 +930,4 @@ class LineF(
  * @param onLine1 if intersection point is on first line segment
  * @param onLine2 if intersection point is on second line segment
  */
-class LineIntersection(
-    var x: Float = 0f,
-    var y: Float = 0f,
-    var onLine1: Boolean = false,
-    var onLine2: Boolean = false
-)
+class LineIntersection(var x: Float = 0f, var y: Float = 0f, var onLine1: Boolean = false, var onLine2: Boolean = false)

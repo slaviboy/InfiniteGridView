@@ -6,27 +6,22 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <com.slaviboy.infinitegridview.InfiniteGridView
+   <!-- <com.slaviboy.infinitegridview.InfiniteGridView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#46ADE8"
         app:horizontalNormalLinesColor="#ffffff"
         app:horizontalThickLinesColor="#ffffff"
         app:verticalNormalLinesColor="#ffffff"
-        app:verticalThickLinesColor="#ffffff" />
+        app:verticalThickLinesColor="#ffffff" />-->
 
-    <TextView
+    <com.slaviboy.infinitegridview.InfiniteGridView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="2dp"
-        android:layout_marginStart="2dp"
-        android:textSize="12sp"
-        android:textColor="#ffffff"
-        android:textStyle="bold"
-        android:shadowColor="#DF000000"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="2"
-        android:text="Made By: Slaviboy" />
+        android:background="#ffffff"
+        app:horizontalNormalLinesColor="#46ADE8"
+        app:horizontalThickLinesColor="#46ADE8"
+        app:verticalNormalLinesColor="#46ADE8"
+        app:verticalThickLinesColor="#46ADE8" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

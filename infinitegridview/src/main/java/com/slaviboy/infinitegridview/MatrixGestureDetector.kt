@@ -1,39 +1,52 @@
+/*
+ * Copyright (C) 2020 Stanislav Georgiev
+ * https://github.com/slaviboy
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.slaviboy.infinitegridview
 
 import android.graphics.Matrix
 import android.view.MotionEvent
-
-// Copyright (C) 2020 Stanislav Georgiev
-//  https://github.com/slaviboy
-//
-//	This program is free software: you can redistribute it and/or modify
-//	it under the terms of the GNU Affero General Public License as
-//	published by the Free Software Foundation, either version 3 of the
-//	License, or (at your option) any later version.
-//
-//	This program is distributed in the hope that it will be useful,
-//	but WITHOUT ANY WARRANTY; without even the implied warranty of
-//	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//	GNU Affero General Public License for more details.
-//
-//	You should have received a copy of the GNU Affero General Public License
-//	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * Gesture detection using a transformation matrix, the changes according to
  * gestures made by the user, supported gestures are Move, Scale and Rotate.
  * All transformations are then applied to a matrix, that can be used to
  * transform array with coordinates as float array, paths or canvas elements.
+ * @param listener listener with callback, triggered when new transformations are done
  */
-open class MatrixGestureDetector(
-    var matrix: Matrix = Matrix(),
-    var listener: OnMatrixChangeListener? = null
-) {
-    private var pointerIndex = 0
-    private val tempMatrix: Matrix = Matrix()
-    private val source = FloatArray(4)
-    private val distance = FloatArray(4)
-    private var count = 0
+open class MatrixGestureDetector(listener: OnMatrixChangeListener? = null) {
+    private var pointerIndex: Int
+    private var tempMatrix: Matrix
+    private var source: FloatArray
+    private var distance: FloatArray
+    private var count: Int
+
+    var matrix: Matrix = Matrix()
+    lateinit var listener: OnMatrixChangeListener
+
+    init {
+        if (listener != null) {
+            this.listener = listener
+        }
+
+        count = 0
+        pointerIndex = 0
+        tempMatrix = Matrix()
+        source = FloatArray(4)
+        distance = FloatArray(4)
+    }
 
     fun onTouchEvent(event: MotionEvent) {
 
@@ -69,7 +82,11 @@ open class MatrixGestureDetector(
                 // use poly to poly to detect transformations
                 tempMatrix.setPolyToPoly(source, pointerIndex, distance, pointerIndex, count)
                 matrix.postConcat(tempMatrix)
-                listener?.onChange(matrix)
+
+                if (::listener.isInitialized) {
+                    listener.onChange(matrix)
+                }
+
                 System.arraycopy(distance, 0, source, 0, distance.size)
             }
 
@@ -85,6 +102,6 @@ open class MatrixGestureDetector(
      * the user. The first argument is the matrix with the updated transformations.
      */
     interface OnMatrixChangeListener {
-        fun onChange(matrix: Matrix?)
+        fun onChange(matrix: Matrix)
     }
 }
